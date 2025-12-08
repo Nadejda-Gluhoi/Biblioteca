@@ -1,104 +1,112 @@
+/**
+ * Navigation Configuration
+ * Sets up Stack Navigator (for screens) and Bottom Tab Navigator (for main sections)
+ * Handles navigation between Onboarding, Home, Letters, Numbers, Games, and Profile
+ */
+
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { Text, View, StyleSheet } from 'react-native';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { Ionicons } from '@expo/vector-icons';
+import { View, StyleSheet } from 'react-native';
 
+import { colors, fonts, spacing } from '../data/theme';
+import { ro } from '../i18n/ro';
+import { RootStackParamList, BottomTabParamList } from '../types';
+
+// Import screens
+import OnboardingScreen from '../screens/OnboardingScreen';
 import HomeScreen from '../screens/HomeScreen';
-import CollectionScreen from '../screens/CollectionScreen';
-import BooksScreen from '../screens/BooksScreen';
-import NewsScreen from '../screens/NewsScreen';
-import ContactScreen from '../screens/ContactScreen';
-import { colors, fonts } from '../theme/colors';
-import { RootTabParamList, RootStackParamList } from '../types';
+import LettersListScreen from '../screens/LettersListScreen';
+import NumbersListScreen from '../screens/NumbersListScreen';
+import VideoLessonScreen from '../screens/VideoLessonScreen';
+import LetterGameScreen from '../screens/LetterGameScreen';
+import NumberGameScreen from '../screens/NumberGameScreen';
+import ProfileScreen from '../screens/ProfileScreen';
 
-const Tab = createBottomTabNavigator<RootTabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
+const Tab = createBottomTabNavigator<BottomTabParamList>();
 
-// Tab bar icon component
-interface TabIconProps {
-  focused: boolean;
-  label: string;
-  icon: string;
-}
-
-const TabIcon: React.FC<TabIconProps> = ({ focused, label, icon }) => (
-  <View style={styles.tabIconContainer}>
-    <Text style={[styles.tabIcon, focused && styles.tabIconFocused]}>{icon}</Text>
-    <Text style={[styles.tabLabel, focused && styles.tabLabelFocused]}>{label}</Text>
-  </View>
-);
-
-function TabNavigator() {
+/**
+ * Bottom Tab Navigator Component
+ * Main navigation for Home, Letters, Numbers, and Profile tabs
+ */
+function MainTabNavigator() {
   return (
     <Tab.Navigator
       screenOptions={{
         headerStyle: {
-          backgroundColor: colors.backgroundDark,
+          backgroundColor: colors.background,
         },
-        headerTintColor: colors.white,
         headerTitleStyle: {
           fontWeight: fonts.weights.bold,
-          fontSize: fonts.sizes.lg,
+          fontSize: fonts.sizes.xl,
+          color: colors.textPrimary,
         },
+        headerShadowVisible: false,
         tabBarStyle: {
-          backgroundColor: colors.backgroundDark,
-          borderTopColor: colors.gray,
-          paddingTop: 8,
-          height: 70,
+          backgroundColor: colors.cardBackground,
+          borderTopWidth: 0,
+          height: 80,
+          paddingBottom: spacing.md,
+          paddingTop: spacing.sm,
+          ...styles.tabBarShadow,
         },
         tabBarActiveTintColor: colors.primary,
         tabBarInactiveTintColor: colors.textMuted,
-        tabBarShowLabel: false,
+        tabBarLabelStyle: {
+          fontSize: fonts.sizes.xs,
+          fontWeight: fonts.weights.semibold,
+          marginTop: spacing.xs,
+        },
       }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
         options={{
-          headerTitle: 'Biblioteca',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} label="Home" icon="🏠" />
+          headerTitle: ro.appName,
+          tabBarLabel: ro.nav.home,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="home" size={size} color={color} />
           ),
         }}
       />
       <Tab.Screen
-        name="Collection"
-        component={CollectionScreen}
+        name="LettersList"
+        component={LettersListScreen}
         options={{
-          headerTitle: 'Colecție',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} label="Colecție" icon="📚" />
+          headerTitle: ro.letters.title,
+          tabBarLabel: ro.nav.letters,
+          tabBarIcon: ({ color, size }) => (
+            <View style={[styles.iconContainer, { backgroundColor: colors.lettersAccent + '30' }]}>
+              <Ionicons name="text" size={size} color={color} />
+            </View>
           ),
         }}
       />
       <Tab.Screen
-        name="Books"
-        component={BooksScreen}
+        name="NumbersList"
+        component={NumbersListScreen}
         options={{
-          headerTitle: 'Cărți',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} label="Cărți" icon="📖" />
+          headerTitle: ro.numbers.title,
+          tabBarLabel: ro.nav.numbers,
+          tabBarIcon: ({ color, size }) => (
+            <View style={[styles.iconContainer, { backgroundColor: colors.numbersAccent + '30' }]}>
+              <Ionicons name="calculator" size={size} color={color} />
+            </View>
           ),
         }}
       />
       <Tab.Screen
-        name="News"
-        component={NewsScreen}
+        name="Profile"
+        component={ProfileScreen}
         options={{
-          headerTitle: 'Noutăți',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} label="Noutăți" icon="📰" />
-          ),
-        }}
-      />
-      <Tab.Screen
-        name="Contact"
-        component={ContactScreen}
-        options={{
-          headerTitle: 'Contact',
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} label="Contact" icon="✉️" />
+          headerTitle: ro.profile.title,
+          tabBarLabel: ro.nav.profile,
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="person-circle" size={size} color={color} />
           ),
         }}
       />
@@ -106,34 +114,91 @@ function TabNavigator() {
   );
 }
 
+/**
+ * Root Stack Navigator
+ * Contains Onboarding and Main Tab Navigator
+ * Also includes modal screens for Video Lessons and Games
+ */
 export default function Navigation() {
   return (
     <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        <Stack.Screen name="Main" component={TabNavigator} />
+      <Stack.Navigator
+        initialRouteName="Onboarding"
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.background },
+        }}
+      >
+        {/* Onboarding - shown first */}
+        <Stack.Screen 
+          name="Onboarding" 
+          component={OnboardingScreen}
+          options={{ animation: 'fade' }}
+        />
+        
+        {/* Main Tab Navigator */}
+        <Stack.Screen 
+          name="MainTabs" 
+          component={MainTabNavigator}
+          options={{ animation: 'slide_from_right' }}
+        />
+        
+        {/* Video Lesson Screen - modal presentation */}
+        <Stack.Screen
+          name="VideoLesson"
+          component={VideoLessonScreen}
+          options={{
+            headerShown: true,
+            headerTitle: '',
+            headerStyle: { backgroundColor: colors.backgroundDark },
+            headerTintColor: colors.textLight,
+            presentation: 'modal',
+          }}
+        />
+        
+        {/* Letter Game Screen */}
+        <Stack.Screen
+          name="LetterGame"
+          component={LetterGameScreen}
+          options={{
+            headerShown: true,
+            headerTitle: ro.letterGame.title,
+            headerStyle: { backgroundColor: colors.background },
+            headerTintColor: colors.textPrimary,
+            animation: 'slide_from_bottom',
+          }}
+        />
+        
+        {/* Number Game Screen */}
+        <Stack.Screen
+          name="NumberGame"
+          component={NumberGameScreen}
+          options={{
+            headerShown: true,
+            headerTitle: ro.numberGame.title,
+            headerStyle: { backgroundColor: colors.background },
+            headerTintColor: colors.textPrimary,
+            animation: 'slide_from_bottom',
+          }}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  tabIconContainer: {
+  tabBarShadow: {
+    shadowColor: colors.textPrimary,
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 10,
+  },
+  iconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-  },
-  tabIcon: {
-    fontSize: 22,
-    marginBottom: 4,
-  },
-  tabIconFocused: {
-    transform: [{ scale: 1.1 }],
-  },
-  tabLabel: {
-    fontSize: fonts.sizes.xs,
-    color: colors.textMuted,
-  },
-  tabLabelFocused: {
-    color: colors.primary,
-    fontWeight: fonts.weights.semibold,
   },
 });

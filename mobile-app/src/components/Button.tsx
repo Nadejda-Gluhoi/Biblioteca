@@ -1,3 +1,9 @@
+/**
+ * Custom Button Component
+ * Child-friendly button with large touch targets and rounded corners
+ * Supports multiple variants: primary, secondary, outline, disabled
+ */
+
 import React from 'react';
 import {
   TouchableOpacity,
@@ -7,17 +13,18 @@ import {
   TextStyle,
   ActivityIndicator,
 } from 'react-native';
-import { colors, fonts, spacing, borderRadius } from '../theme/colors';
+import { colors, fonts, spacing, borderRadius, shadows } from '../data/theme';
 
 interface ButtonProps {
   title: string;
   onPress: () => void;
-  variant?: 'primary' | 'secondary' | 'outline';
-  size?: 'small' | 'medium' | 'large';
+  variant?: 'primary' | 'secondary' | 'outline' | 'success' | 'letters' | 'numbers';
+  size?: 'small' | 'medium' | 'large' | 'xlarge';
   disabled?: boolean;
   loading?: boolean;
   style?: ViewStyle;
   textStyle?: TextStyle;
+  icon?: React.ReactNode;
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -29,43 +36,57 @@ const Button: React.FC<ButtonProps> = ({
   loading = false,
   style,
   textStyle,
+  icon,
 }) => {
   const getButtonStyle = (): ViewStyle[] => {
-    const baseStyle = [styles.button, styles[size]];
+    const baseStyles: ViewStyle[] = [styles.button, styles[size], shadows.medium];
 
+    // Apply variant styles
     switch (variant) {
       case 'secondary':
-        baseStyle.push(styles.secondary);
+        baseStyles.push(styles.secondary);
         break;
       case 'outline':
-        baseStyle.push(styles.outline);
+        baseStyles.push(styles.outline);
+        break;
+      case 'success':
+        baseStyles.push(styles.success);
+        break;
+      case 'letters':
+        baseStyles.push(styles.letters);
+        break;
+      case 'numbers':
+        baseStyles.push(styles.numbers);
         break;
       default:
-        baseStyle.push(styles.primary);
+        baseStyles.push(styles.primary);
     }
 
     if (disabled) {
-      baseStyle.push(styles.disabled);
+      baseStyles.push(styles.disabled);
     }
 
-    return baseStyle;
+    return baseStyles;
   };
 
   const getTextStyle = (): TextStyle[] => {
-    const baseStyle = [styles.text, styles[`${size}Text`]];
+    const baseStyles: TextStyle[] = [styles.text, styles[`${size}Text`]];
 
     switch (variant) {
-      case 'secondary':
-        baseStyle.push(styles.secondaryText);
-        break;
       case 'outline':
-        baseStyle.push(styles.outlineText);
+        baseStyles.push(styles.outlineText);
+        break;
+      case 'letters':
+        baseStyles.push(styles.lettersText);
+        break;
+      case 'numbers':
+        baseStyles.push(styles.numbersText);
         break;
       default:
-        baseStyle.push(styles.primaryText);
+        baseStyles.push(styles.lightText);
     }
 
-    return baseStyle;
+    return baseStyles;
   };
 
   return (
@@ -76,11 +97,12 @@ const Button: React.FC<ButtonProps> = ({
       activeOpacity={0.8}
     >
       {loading ? (
-        <ActivityIndicator
-          color={variant === 'outline' ? colors.primary : colors.white}
-        />
+        <ActivityIndicator color={variant === 'outline' ? colors.primary : colors.textLight} />
       ) : (
-        <Text style={[...getTextStyle(), textStyle]}>{title}</Text>
+        <>
+          {icon}
+          <Text style={[...getTextStyle(), textStyle]}>{title}</Text>
+        </>
       )}
     </TouchableOpacity>
   );
@@ -88,62 +110,86 @@ const Button: React.FC<ButtonProps> = ({
 
 const styles = StyleSheet.create({
   button: {
+    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: borderRadius.sm,
+    borderRadius: borderRadius.xl,
+    gap: spacing.sm,
   },
-  // Sizes
+  // Size variants
   small: {
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
-    minWidth: 80,
+    minHeight: 40,
   },
   medium: {
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.lg,
-    minWidth: 120,
+    minHeight: 52,
   },
   large: {
     paddingVertical: spacing.lg,
     paddingHorizontal: spacing.xl,
-    minWidth: 160,
+    minHeight: 64,
   },
-  // Variants
+  xlarge: {
+    paddingVertical: spacing.xl,
+    paddingHorizontal: spacing.xxl,
+    minHeight: 80,
+  },
+  // Color variants
   primary: {
     backgroundColor: colors.primary,
   },
   secondary: {
-    backgroundColor: colors.white,
+    backgroundColor: colors.secondary,
   },
   outline: {
     backgroundColor: 'transparent',
-    borderWidth: 2,
+    borderWidth: 3,
     borderColor: colors.primary,
   },
+  success: {
+    backgroundColor: colors.success,
+  },
+  letters: {
+    backgroundColor: colors.lettersAccent,
+  },
+  numbers: {
+    backgroundColor: colors.numbersAccent,
+  },
   disabled: {
+    backgroundColor: colors.textMuted,
     opacity: 0.6,
   },
   // Text styles
   text: {
-    fontWeight: fonts.weights.semibold,
+    fontWeight: fonts.weights.bold,
+    textAlign: 'center',
   },
   smallText: {
-    fontSize: fonts.sizes.sm,
-  },
-  mediumText: {
     fontSize: fonts.sizes.md,
   },
-  largeText: {
+  mediumText: {
     fontSize: fonts.sizes.lg,
   },
-  primaryText: {
-    color: colors.white,
+  largeText: {
+    fontSize: fonts.sizes.xl,
   },
-  secondaryText: {
-    color: colors.primary,
+  xlargeText: {
+    fontSize: fonts.sizes.xxl,
+  },
+  lightText: {
+    color: colors.textLight,
   },
   outlineText: {
     color: colors.primary,
+  },
+  lettersText: {
+    color: colors.textPrimary,
+  },
+  numbersText: {
+    color: colors.textPrimary,
   },
 });
 
