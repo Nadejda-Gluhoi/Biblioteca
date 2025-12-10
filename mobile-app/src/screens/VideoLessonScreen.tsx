@@ -5,17 +5,16 @@
  * Shows lesson description and navigation to game
  */
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
-  ActivityIndicator,
   Dimensions,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useVideoPlayer, VideoView } from 'expo-video';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 
@@ -36,24 +35,29 @@ type VideoLessonScreenProps = {
   route: RouteProp<RootStackParamList, 'VideoLesson'>;
 };
 
+/**
+ * Video Player Placeholder Component
+ * Shows a placeholder image since actual videos are not available in MVP
+ */
+const VideoPlaceholder: React.FC<{ title: string }> = ({ title }) => (
+  <View style={styles.placeholderContainer}>
+    <Text style={styles.placeholderEmoji}>🎬</Text>
+    <Text style={styles.placeholderTitle}>{title}</Text>
+    <Text style={styles.placeholderSubtitle}>Video educativ</Text>
+    <Text style={styles.placeholderNote}>
+      (În versiunea completă aici va fi un desen animat)
+    </Text>
+  </View>
+);
+
 const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route }) => {
   const { lessonId, lessonType } = route.params;
-  const [isLoading, setIsLoading] = useState(true);
   const { completeLesson } = useProgress();
 
   // Get lesson data based on type
   const lesson = lessonType === 'letter' 
     ? getLetterById(lessonId) 
     : getNumberById(lessonId);
-
-  // Create video player with expo-video
-  const player = useVideoPlayer(
-    'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4', // Placeholder video
-    (player) => {
-      player.loop = false;
-      setIsLoading(false);
-    }
-  );
 
   useEffect(() => {
     // Set header title based on lesson
@@ -76,10 +80,6 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
     } else {
       navigation.replace('NumberGame', { numberId: lessonId });
     }
-  };
-
-  const handleWatchAgain = () => {
-    player.replay();
   };
 
   if (!lesson) {
@@ -105,6 +105,13 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
       ? `Cifra ${lesson.value}` 
       : '';
 
+  // Get the display symbol for the placeholder
+  const displaySymbol = lessonType === 'letter' && 'letter' in lesson
+    ? lesson.letter
+    : 'value' in lesson
+      ? lesson.value.toString()
+      : '?';
+
   return (
     <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView
@@ -112,25 +119,13 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Video Player */}
+        {/* Video Placeholder */}
         <View style={[styles.videoContainer, shadows.medium]}>
-          {isLoading && (
-            <View style={styles.loadingOverlay}>
-              <ActivityIndicator size="large" color={colors.primary} />
-              <Text style={styles.loadingText}>{ro.video.loading}</Text>
-            </View>
-          )}
+          <VideoPlaceholder title={lessonTitle} />
           
-          <VideoView
-            style={styles.video}
-            player={player}
-            allowsFullscreen
-            allowsPictureInPicture
-          />
-          
-          {/* Lesson title overlay */}
-          <View style={styles.videoTitleOverlay}>
-            <Text style={styles.videoTitle}>{lessonTitle}</Text>
+          {/* Big symbol display */}
+          <View style={styles.symbolContainer}>
+            <Text style={styles.symbolText}>{displaySymbol}</Text>
           </View>
         </View>
 
@@ -162,13 +157,6 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
         {/* Action buttons */}
         <View style={styles.buttonsContainer}>
           <Button
-            title={ro.video.watchAgain}
-            onPress={handleWatchAgain}
-            variant="outline"
-            size="large"
-            style={styles.button}
-          />
-          <Button
             title={ro.video.continueToGame}
             onPress={handleContinueToGame}
             variant="primary"
@@ -194,41 +182,55 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.xxl,
   },
   videoContainer: {
-    backgroundColor: colors.textPrimary,
+    backgroundColor: colors.primary,
     borderRadius: borderRadius.xl,
     overflow: 'hidden',
     position: 'relative',
     marginBottom: spacing.lg,
+    minHeight: VIDEO_HEIGHT,
   },
-  video: {
-    width: '100%',
-    height: VIDEO_HEIGHT,
-  },
-  loadingOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: colors.textPrimary,
+  placeholderContainer: {
+    padding: spacing.xl,
     alignItems: 'center',
     justifyContent: 'center',
-    zIndex: 10,
   },
-  loadingText: {
-    color: colors.textLight,
-    fontSize: fonts.sizes.md,
-    marginTop: spacing.md,
+  placeholderEmoji: {
+    fontSize: 48,
+    marginBottom: spacing.md,
   },
-  videoTitleOverlay: {
-    position: 'absolute',
-    top: spacing.md,
-    left: spacing.md,
-    backgroundColor: colors.primary + 'CC',
-    paddingHorizontal: spacing.md,
-    paddingVertical: spacing.sm,
-    borderRadius: borderRadius.md,
-  },
-  videoTitle: {
-    color: colors.textLight,
-    fontSize: fonts.sizes.md,
+  placeholderTitle: {
+    fontSize: fonts.sizes.xl,
     fontWeight: fonts.weights.bold,
+    color: colors.textLight,
+    marginBottom: spacing.xs,
+  },
+  placeholderSubtitle: {
+    fontSize: fonts.sizes.md,
+    color: colors.textLight,
+    opacity: 0.9,
+    marginBottom: spacing.sm,
+  },
+  placeholderNote: {
+    fontSize: fonts.sizes.sm,
+    color: colors.textLight,
+    opacity: 0.7,
+    fontStyle: 'italic',
+  },
+  symbolContainer: {
+    position: 'absolute',
+    bottom: spacing.lg,
+    right: spacing.lg,
+    width: 80,
+    height: 80,
+    borderRadius: borderRadius.xl,
+    backgroundColor: colors.textLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  symbolText: {
+    fontSize: fonts.sizes.title,
+    fontWeight: fonts.weights.bold,
+    color: colors.primary,
   },
   infoCard: {
     backgroundColor: colors.cardBackground,
