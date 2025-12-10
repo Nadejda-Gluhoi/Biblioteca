@@ -1,7 +1,7 @@
 /**
  * Video Lesson Screen
  * Displays educational video content for a letter or number
- * Uses expo-av for video playback
+ * Uses expo-video for video playback
  * Shows lesson description and navigation to game
  */
 
@@ -10,12 +10,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useVideoPlayer, VideoView } from 'expo-video';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RouteProp } from '@react-navigation/native';
 
@@ -38,15 +38,22 @@ type VideoLessonScreenProps = {
 
 const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route }) => {
   const { lessonId, lessonType } = route.params;
-  const video = useRef<Video>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [hasWatched, setHasWatched] = useState(false);
   const { completeLesson } = useProgress();
 
   // Get lesson data based on type
   const lesson = lessonType === 'letter' 
     ? getLetterById(lessonId) 
     : getNumberById(lessonId);
+
+  // Create video player with expo-video
+  const player = useVideoPlayer(
+    'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4', // Placeholder video
+    (player) => {
+      player.loop = false;
+      setIsLoading(false);
+    }
+  );
 
   useEffect(() => {
     // Set header title based on lesson
@@ -58,16 +65,6 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
       });
     }
   }, [lesson, lessonType, navigation]);
-
-  const handlePlaybackStatusUpdate = (status: AVPlaybackStatus) => {
-    if (status.isLoaded) {
-      setIsLoading(false);
-      // Mark as watched when video reaches near the end (or immediately for demo)
-      if (status.didJustFinish || status.positionMillis > 1000) {
-        setHasWatched(true);
-      }
-    }
-  };
 
   const handleContinueToGame = async () => {
     // Mark lesson as completed
@@ -81,10 +78,8 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
     }
   };
 
-  const handleWatchAgain = async () => {
-    if (video.current) {
-      await video.current.replayAsync();
-    }
+  const handleWatchAgain = () => {
+    player.replay();
   };
 
   if (!lesson) {
@@ -111,7 +106,7 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
       : '';
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['bottom']}>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
@@ -126,19 +121,11 @@ const VideoLessonScreen: React.FC<VideoLessonScreenProps> = ({ navigation, route
             </View>
           )}
           
-          {/* 
-            Note: For MVP, we use a placeholder since actual video files aren't available.
-            In production, replace the source with actual video files.
-          */}
-          <Video
-            ref={video}
+          <VideoView
             style={styles.video}
-            source={{ uri: 'https://d23dyxeqlo5psv.cloudfront.net/big_buck_bunny.mp4' }} // Placeholder video
-            useNativeControls
-            resizeMode={ResizeMode.CONTAIN}
-            isLooping={false}
-            onPlaybackStatusUpdate={handlePlaybackStatusUpdate}
-            onLoad={() => setIsLoading(false)}
+            player={player}
+            allowsFullscreen
+            allowsPictureInPicture
           />
           
           {/* Lesson title overlay */}

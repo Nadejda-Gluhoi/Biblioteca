@@ -149,7 +149,7 @@ mobile-app/
 - **React Navigation** - Navigație (Stack + Bottom Tabs)
 - **Context API** - Management de state global
 - **AsyncStorage** - Persistența datelor local
-- **expo-av** - Player video
+- **expo-video** - Player video
 - **@expo/vector-icons** - Iconițe
 
 ## 📊 Tipuri TypeScript
