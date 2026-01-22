@@ -1,0 +1,12 @@
+[
+  {
+    "id": "math",
+    "name": "Math",
+    "description": "Numbers, shapes, and patterns"
+  },
+  {
+    "id": "science",
+    "name": "Science",
+    "description": "Discover the world through experiments"
+  }
+]

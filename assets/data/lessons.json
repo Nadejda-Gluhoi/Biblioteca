@@ -1,0 +1,12 @@
+[
+  {
+    "id": "lesson_fractions",
+    "title": "Understanding Fractions",
+    "videoAsset": "assets/videos/fractions.mp4"
+  },
+  {
+    "id": "lesson_planets",
+    "title": "Tour of the Planets",
+    "videoAsset": "assets/videos/planets.mp4"
+  }
+]
